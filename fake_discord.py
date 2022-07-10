@@ -1,9 +1,8 @@
-from optparse import Option
 from typing import List, Dict, Optional
 
 class User(object):
     """
-    A fake member for message responses
+    A fake user for message responses
     """
 
     id: int
