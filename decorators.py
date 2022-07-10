@@ -1,5 +1,5 @@
 from typing import Optional
-from genclasses import YnaError, YnaFunctionContext
+from classes import YnaError, YnaFunctionContext
 from functools import update_wrapper
 from .functions import FunctionArguments
 

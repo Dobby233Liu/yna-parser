@@ -1,5 +1,5 @@
 from typing import Any
-from .genclasses import YnaError
+from .classes import YnaError
 
 def get_int(value: Any, error: str = "non int parameter") -> int:
     """

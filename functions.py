@@ -1,11 +1,12 @@
-from .genclasses import YnaError, YnaFunctionContext
+from .classes import YnaError, YnaFunctionContext
 from .decorators import yna_function, global_variable_getter, result_storable
 from typing import Any, Optional
-from .typechecker import get_int, get_float
+from .types_transformer import get_int, get_float
 from datetime import datetime, timedelta
 from urllib.parse import quote as urlencode
 from random import choice, choices, randrange
 from fake_discord import Member
+from .utils import get_attr
 
 FunctionArguments = tuple[str]
 
@@ -135,18 +136,6 @@ async def wchoose(ctx: YnaFunctionContext, *options: tuple) -> str:
 
     return choices(population, weights)
 
-def _get_attr(obj: Any, attrs: str) -> Any:
-    """
-    Gets attribute of an object by an attribute path.
-    """
-    attr = obj
-    for i in attrs.split("."):
-        try:
-            attr = getattr(attr, i)
-        except AttributeError as e:
-            raise YnaError("has no attrs") from e
-    return attr
-
 @yna_function
 @result_storable
 async def user(ctx: YnaFunctionContext, attrs: str = None, *args: Optional[FunctionArguments]) -> Member | Any:
@@ -162,7 +151,7 @@ async def user(ctx: YnaFunctionContext, attrs: str = None, *args: Optional[Funct
     if not attrs or not attrs.strip():
         return rand_user
 
-    return _get_attr(rand_user, attrs)
+    return get_attr(rand_user, attrs, func_context=True)
 
 @yna_function
 @result_storable
@@ -185,7 +174,7 @@ async def nameof(ctx: YnaFunctionContext, id: int, attrs: str = None, *args: Opt
     if not attrs or not attrs.strip():
         return str(user)
 
-    return _get_attr(user, attrs)
+    return get_attr(user, attrs, func_context=True)
 
 @yna_function
 @result_storable
