@@ -1,6 +1,7 @@
 from typing import Optional
 from genclasses import YnaError, YnaFunctionContext
 from functools import update_wrapper
+from .functions import FunctionArguments
 
 def yna_function(func: function) -> function:
     """
@@ -30,7 +31,7 @@ def result_storable(func: Optional[function] = None, *, type_clash=False) -> fun
     as a global variable.
     """
 
-    def inner(ctx: YnaFunctionContext, *args: tuple[str], **kwargs: tuple[str]) -> str:
+    def inner(ctx: YnaFunctionContext, *args: FunctionArguments, **kwargs: FunctionArguments) -> str:
         # I hate squas
         if type_clash and not ctx.called_as_variable:
             raise YnaError("type clash")

@@ -105,7 +105,7 @@ async def parse(ctx: YnaFunctionContext, quote: str) -> str:
 
 @yna_function
 @result_storable
-async def choose(ctx: YnaFunctionContext, *options: tuple[Any]) -> str:
+async def choose(ctx: YnaFunctionContext, *options: tuple) -> str:
     """
     Chooses a random element from a given list.
     """
@@ -149,7 +149,7 @@ def _get_attr(obj: Any, attrs: str) -> Any:
 
 @yna_function
 @result_storable
-async def user(ctx: YnaFunctionContext, attrs: str = None, *args: Optional[tuple]) -> Member | Any:
+async def user(ctx: YnaFunctionContext, attrs: str = None, *args: Optional[FunctionArguments]) -> Member | Any:
     """
     Chooses a random member from the server.
     Can choose any member, not just online/active/in the channel members.
@@ -166,7 +166,7 @@ async def user(ctx: YnaFunctionContext, attrs: str = None, *args: Optional[tuple
 
 @yna_function
 @result_storable
-async def nameof(ctx: YnaFunctionContext, id: int, attrs: str = None, *args: Optional[tuple]) -> str | Any:
+async def nameof(ctx: YnaFunctionContext, id: int, attrs: str = None, *args: Optional[FunctionArguments]) -> str | Any:
     """
     Fetches a members name from their ID.
     This can be paired with `member` to get an object.
