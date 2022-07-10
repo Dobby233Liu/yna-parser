@@ -11,7 +11,7 @@ def yna_function(func: function) -> function:
 
     return func
 
-def gettable_global(func: function) -> function:
+def global_variable_getter(func: function) -> function:
     """
     When a function has this decorator, it will called
     when accessed as a global variable.

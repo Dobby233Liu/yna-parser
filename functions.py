@@ -1,5 +1,5 @@
 from .genclasses import YnaError, YnaFunctionContext
-from .decorators import yna_function, gettable_global, result_storable
+from .decorators import yna_function, global_variable_getter, result_storable
 from typing import Any, Optional
 from .typechecker import get_int, get_float
 from datetime import datetime, timedelta
@@ -72,7 +72,7 @@ async def slice(ctx: YnaFunctionContext, *args: tuple[int, str] | tuple[Optional
     return content[b:e:s]
 
 @yna_function
-@gettable_global
+@global_variable_getter
 @result_storable
 async def time(ctx: YnaFunctionContext, offset: int = 0, template: str = "%H:%M") -> str:
     """
