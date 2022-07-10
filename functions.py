@@ -200,10 +200,12 @@ async def num(ctx: YnaFunctionContext, min: int = 0, max: int = 100, step: int =
         get_int(step, error="invalid args"),
     )
 
-    if max <= min or step <= 0:
-        raise YnaError("invalid range")
-
-    return randrange(min, max, step)
+    try:
+        return randrange(min, max, step)
+    except ValueError as e:
+        raise YnaError("invalid range") from e
+    except TypeError as e:
+        raise YnaError("invalid range") from e
 
 @yna_function
 async def set(ctx: YnaFunctionContext, name: str, value: Optional[Any] = None) -> None:
