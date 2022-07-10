@@ -212,6 +212,8 @@ async def set(ctx: YnaFunctionContext, name: str, value: Optional[Any] = None) -
     All objects saved this way are strings.
     """
 
-    ctx.set_variable(name, value is not None and str(value) or None)
+    ctx.base_ctx.set_variable(name, value is not None and str(value) or None)
 
 # func would be a special case in the parser
+
+# TODO: the rest of functions
