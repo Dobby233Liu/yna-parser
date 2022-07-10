@@ -1,19 +1,54 @@
+from optparse import Option
 from typing import List, Dict, Optional
+
+class User(object):
+    """
+    A fake member for message responses
+    """
+
+    id: int
+    name: str
+    discriminator: str
+
+    def __init__(self, id: int, name: str, discriminator: str) -> None:
+        self.id = id
+        self.name = name
+        self.discriminator = discriminator
+
+    def __int__(self) -> int:
+        return self.id
+
+    def __str__(self) -> str:
+        return f"{self.name}#{self.discriminator}"
 
 class Member(object):
     """
     A fake member for message responses
     """
 
-    def __init__(self, id: int) -> None:
-        pass
+    nick: str = None
+    _user: User
+
+    def __init__(self, user: User, nick: Optional[str] = None) -> None:
+        self._user = user
+        self.nick = nick
+
+    @property
+    def display_name(self) -> str:
+        return self._nick and self._nick or self._user.name
+
+    def __int__(self) -> int:
+        return int(self._user)
+
+    def __str__(self) -> str:
+        return str(self._user)
 
 class Guild(object):
     """
     A fake guild for message responses
     """
 
-    _members: Dict[int, Member] = []
+    _members: Dict[int, Member]
 
     def __init__(self, members: Dict[int, Member] = []) -> None:
         self._members = members
