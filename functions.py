@@ -255,11 +255,11 @@ async def member(ctx: YnaFunctionContext, key: str, name: str) -> None:
 
 # func would be a special case in the parser
 
-def _empty_cb(ctx: YnaContext):
+def _empty_cb(ctx: YnaContext) -> None:
     pass
 
 @yna_function
-async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: Any | YnaWhenTypes, on_true: function, on_false: Optional[function]) -> Any:
+async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: Any | YnaWhenTypes, on_true: function, on_false: Optional[function]) -> Optional[Any]:
     on_false = on_false and on_false or _empty_cb
 
     condition = False
