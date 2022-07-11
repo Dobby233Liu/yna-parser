@@ -1,5 +1,5 @@
 from multiprocessing.sharedctypes import Value
-from .classes import YnaContext, YnaError, YnaFunctionContext
+from .classes import YnaBaseContext, YnaError, YnaFunctionContext, YnaSubContext
 from .decorators import yna_function, global_variable_getter, result_storable
 from typing import Any, Optional, Type
 from .types_transformer import get_int, get_float
@@ -12,6 +12,7 @@ from enum import Enum
 import re
 
 FunctionArguments = tuple[str]
+ParamString = str
 
 class YnaWhenOperator(Enum):
     # Checks that a and b are the same.
@@ -83,28 +84,41 @@ async def len(ctx: YnaFunctionContext, content: str) -> int:
     return len(content)
 
 @yna_function
-async def slice(ctx: YnaFunctionContext, *args: tuple[int, str] | tuple[Optional[int], Optional[int], int, str]) -> str:
+async def slice(ctx: YnaFunctionContext, args: ParamString, content: str) -> str:
     """
     Slices a piece of evaluated content.
 
     slice(ctx, index, content)
         - returns a specific 0-indexed character
 
-    slice(ctx, b=None, e=None, s=1, content)
+    slice(ctx, "b=None,e=None,s=1", content)
         - returns a 0-indexed, top-exclusive substring
     """
 
-    if len(args) == 2:
-        index, content = args
-        index = get_int(index)
-        return content[index]
+    args = args.split(",")
 
-    b, e, s, content = args
+    if len(args) <= 0:
+        raise YnaError("no args")
+    if len(args) == 2:
+        raise YnaError("bad content")
+    if len(args) > 3:
+        raise YnaError("too many nums")
+    if len(args) == 1:
+        index = get_int(args, "non int index")
+        try:
+            return content[index]
+        except IndexError as e:
+            raise YnaError("bad index") from e
+
+    b, e, s = args
     b, e, s = (
         b and get_int(b, error="non int index") or None,
         e and get_int(e, error="non int index") or None,
         s and get_int(s, error="non int index") or 1
     )
+    if s <= 0:
+        raise YnaError("zero step")
+
     return content[b:e:s]
 
 @yna_function
@@ -255,12 +269,15 @@ async def member(ctx: YnaFunctionContext, key: str, name: str) -> None:
 
 # func would be a special case in the parser
 
-def _empty_cb(ctx: YnaContext) -> None:
+def _empty_cb(ctx: YnaBaseContext) -> None:
     pass
 
-# special case: parser evaluates on_true and on_false to functions
+# special case: interpreter evaluates on_true and on_false to functions
 @yna_function
 async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: Any | YnaWhenTypes, on_true: function, on_false: Optional[function] = None) -> Optional[Any]:
+    """
+    Conditionals, similar to if statements.
+    """
     on_false = on_false and on_false or _empty_cb
 
     condition = False
@@ -322,5 +339,34 @@ async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: An
         return on_true(ctx.base_ctx)
     else:
         return on_false(ctx.base_ctx)
+
+# special case:
+#   - interpreter evaluates content to a function
+#   - handles this generator
+@yna_function
+async def loop(ctx: YnaFunctionContext, args: ParamString, content: function) -> Optional[any]:
+    context = YnaSubContext(ctx.base_ctx)
+
+    args = args.split(",")
+
+    if len(args) <= 0 or len(args) > 3:
+        raise YnaError("invalid args")
+
+    b = None
+    e = None
+    s = None
+    if len(args) == 1:
+        e = get_int(args, "non int index")
+    else:
+        b, e, s = args
+        b, e, s = (
+            b and get_int(b, error="non int index") or 1,
+            get_int(e, error="non int index"),
+            s and get_int(s, error="non int index") or 1
+        )
+
+    for i in range(b, e, s):
+        context.set_variable("iter", i)
+        yield content(context)
 
 # TODO: the rest of functions
