@@ -1,7 +1,7 @@
 from multiprocessing.sharedctypes import Value
 from .classes import YnaContext, YnaError, YnaFunctionContext
 from .decorators import yna_function, global_variable_getter, result_storable
-from typing import Any, Optional
+from typing import Any, Optional, Type
 from .types_transformer import get_int, get_float
 from datetime import datetime, timedelta
 from urllib.parse import quote as urlencode
@@ -278,9 +278,14 @@ async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: An
         case YnaWhenOperator.GREATER_THAN_OR_EQUAL.value:
             condition = get_int(arg1, "args must be numbers") >= get_int(arg2, "args must be numbers")
         case YnaWhenOperator.IS_IN.value:
-            if "," in arg2:
-                arg2 = arg2.split(",")
-            condition = arg1 in arg2
+            try:
+                if "," in arg2:
+                    arg2 = arg2.split(",")
+                condition = arg1 in arg2
+            except ValueError as e:
+                raise YnaError("args do not support in") from e
+            except TypeError as e:
+                raise YnaError("args do not support in") from e
         case YnaWhenOperator.IS.value:
             match arg2:
                 case YnaWhenTypes.WORD.value:
@@ -304,7 +309,10 @@ async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: An
                     condition = is_yna_error(arg1)
                 case _:
                     if arg2.startswith("/") and arg2.endswith("/"):
-                        condition = bool(re.match(arg1[1:-1], arg1))
+                        try:
+                            condition = bool(re.match(arg1[1:-1], arg1))
+                        except re.error as e:
+                            raise YnaError("invalid regex") from e
                     else:
                         raise YnaError("invalid type name")
         case _:
