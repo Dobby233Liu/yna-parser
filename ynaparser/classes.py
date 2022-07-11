@@ -142,10 +142,6 @@ class YnaFunctionContext(YnaBareContext):
         return True
 
 
-# copy of the function in classes.py, dont ask why lmao
-def get_caller_name():
-    return inspect.getouterframes(inspect.currentframe(), 2)[2].function
-
 class YnaError(Exception):
     """
     An error that ocurred when running a YNA function.
@@ -156,7 +152,7 @@ class YnaError(Exception):
 
     def __init__(self, *args: tuple, source_function: str | None = None) -> None:
         super().__init__(*args)
-        self.source_function = source_function and source_function or get_caller_name()
+        self.source_function = source_function and source_function or inspect.getouterframes(inspect.currentframe(), 2)[1].function
 
     def __str__(self) -> str:
         return self.source_function and "<%s:%s>" % (self.source_function, super().__str__()) or "<%s>" % (super().__str__())
