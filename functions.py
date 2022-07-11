@@ -258,8 +258,9 @@ async def member(ctx: YnaFunctionContext, key: str, name: str) -> None:
 def _empty_cb(ctx: YnaContext) -> None:
     pass
 
+# special case: parser evaluates on_true and on_false to functions
 @yna_function
-async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: Any | YnaWhenTypes, on_true: function, on_false: Optional[function]) -> Optional[Any]:
+async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: Any | YnaWhenTypes, on_true: function, on_false: Optional[function] = None) -> Optional[Any]:
     on_false = on_false and on_false or _empty_cb
 
     condition = False
