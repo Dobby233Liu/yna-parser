@@ -2,7 +2,7 @@ from typing import Any
 from .classes import YnaError
 import inspect
 
-def get_attr(obj: Any, attrs: str, func_context: bool = False) -> Any:
+def get_attr(obj: Any, attrs: str) -> Any:
     """
     Gets attribute of an object by an attribute path.
     """
@@ -11,10 +11,7 @@ def get_attr(obj: Any, attrs: str, func_context: bool = False) -> Any:
         try:
             attr = getattr(attr, i)
         except AttributeError as e:
-            if func_context:
-                raise YnaError("has no attrs") from e
-            else:
-                raise e
+            raise YnaError("has no attrs") from e
     return attr
 
 def is_yna_error(error: YnaError | Any):

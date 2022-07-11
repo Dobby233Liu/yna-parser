@@ -200,7 +200,7 @@ async def user(ctx: YnaFunctionContext, attrs: str = None, *args: Optional[Funct
     if not attrs or not attrs.strip():
         return rand_user
 
-    return get_attr(rand_user, attrs, func_context=True)
+    return get_attr(rand_user, attrs)
 
 @yna_function
 @result_storable
@@ -223,7 +223,7 @@ async def nameof(ctx: YnaFunctionContext, id: int, attrs: str = None, *args: Opt
     if not attrs or not attrs.strip():
         return str(user)
 
-    return get_attr(user, attrs, func_context=True)
+    return get_attr(user, attrs)
 
 @yna_function
 @result_storable
