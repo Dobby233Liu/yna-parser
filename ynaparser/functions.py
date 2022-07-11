@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from urllib.parse import quote as urlencode
 from random import choice, choices, randrange
 from .fake_discord import Member
-from .utils_sub import get_attr, is_yna_error
+from .utils_yna import get_attr, is_yna_error
 from enum import Enum
 import re
 
