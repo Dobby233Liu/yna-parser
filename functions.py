@@ -278,6 +278,7 @@ async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: An
     """
     Conditionals, similar to if statements.
     """
+
     on_false = on_false and on_false or _empty_cb
 
     condition = False
@@ -345,6 +346,13 @@ async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: An
 #   - handles this generator
 @yna_function
 async def loop(ctx: YnaFunctionContext, args: ParamString, content: function) -> Optional[any]:
+    """
+    Flow control, similar to "for" loops.
+    Whilst inside the loop, your current loopcount will be stored in the {iter} variable. Note: This will be deleted when a loop is exited.
+    When loops are nested, only the current loop value is stored in {iter}. Once the loop finishes, the loop value of the outside loop will be copied back again.
+    If you want to access the loop variable inside nested loops, you will need to {set} it to a new variable.
+    """
+
     context = YnaSubContext(ctx.base_ctx)
 
     args = args.split(",")
@@ -366,7 +374,36 @@ async def loop(ctx: YnaFunctionContext, args: ParamString, content: function) ->
         )
 
     for i in range(b, e, s):
+        # TODO: prevent iter from leaking out
+        # see also YnaSubContext init
         context.set_variable("iter", i)
         yield content(context)
+
+@yna_function
+async def rep(ctx: YnaFunctionContext, var: str, *args: tuple[str]) -> str:
+    """
+    Works like a find and replace function in a text editor.
+    This command has 2 different syntaxes. The old and depreciated one and a new one.
+    Switching between the two is done by setting the {newrep} variable.
+    """
+
+    if ctx.root_ctx.new_replace:
+        with_str, in_str = args
+    else:
+        in_str, with_str = args
+    return in_str.replace(var, with_str)
+
+@yna_function
+async def split(ctx: YnaFunctionContext, var: str, content: str, sep: str = ",") -> int:
+    """
+    Splits a string based on a given separator, generating a set of variables with the split values.
+    Each element of the output will be saved in a variable with a given prefix, and counting up from 1.
+    This function returns the total number of elements (which is by definition the highest valid output index.)
+    """
+
+    result = content.split(sep)
+    for i in range(len(result)):
+        ctx.base_ctx.set_variable(var + str(i), result[i])
+    return len(result)
 
 # TODO: the rest of functions

@@ -22,7 +22,7 @@ class YnaBaseContext(YnaBareContext):
         # todo: check name vaildity
 
         if name == "newrep":
-            self.root_ctx.new_replace = True
+            self.root_ctx.new_replace = value
         if value is None:
             self.variables.pop(name)
             return
@@ -40,6 +40,8 @@ class YnaRootContext(YnaBaseContext):
     base_ctx: YnaBaseContext = None
     # The root context of the context.
     root_ctx: YnaBaseContext = None
+
+    new_replace = False
 
     def __init__(self, discord_ctx: Any | DiscordContext) -> None:
         """
@@ -92,7 +94,7 @@ class YnaSubContext(YnaBaseContext):
         else:
             while isinstance(self.root_ctx, YnaSubContext):
                 self.root_ctx = ctx.base_ctx
-        self.variables = ctx.variables # .copy() TODO: ???
+        self.variables = ctx.variables # TODO: ???
 
 class YnaFunctionContext(YnaBareContext):
 
@@ -102,6 +104,8 @@ class YnaFunctionContext(YnaBareContext):
 
     # The parent context of the context.
     base_ctx: YnaBaseContext = None
+    # The parent context of the context.
+    root_ctx: YnaRootContext = None
 
     # Is this function invoked by an access of it as a global variable
     # or not.
@@ -116,6 +120,11 @@ class YnaFunctionContext(YnaBareContext):
         """
 
         self.base_ctx = ctx
+        if not isinstance(ctx, YnaSubContext):
+            self.root_ctx = ctx
+        else:
+            while isinstance(self.root_ctx, YnaSubContext):
+                self.root_ctx = ctx.base_ctx
         self.called_as_variable = called_as_variable
         self.ret_var = ret_var
 
