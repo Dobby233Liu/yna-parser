@@ -120,9 +120,8 @@ class YnaFunctionContext(YnaBareContext):
         """
 
         self.base_ctx = ctx
-        if not isinstance(ctx, YnaSubContext):
-            self.root_ctx = ctx
-        else:
+        self.root_ctx = ctx
+        if isinstance(ctx, YnaSubContext):
             while isinstance(self.root_ctx, YnaSubContext):
                 self.root_ctx = ctx.base_ctx
         self.called_as_variable = called_as_variable
