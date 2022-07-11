@@ -15,9 +15,9 @@ class YnaContext(YnaBaseContext):
     TODO
     """
 
-    discord_ctx: DiscordContext = None
+    discord_ctx: Any | DiscordContext = None
 
-    def __init__(self, ctx: DiscordContext) -> None:
+    def __init__(self, ctx: Any | DiscordContext) -> None:
         """
         Initalizes the context with ctx as the parent context.
         """
@@ -29,7 +29,9 @@ class YnaContext(YnaBaseContext):
     variables: list[str] = []
 
     def set_variable(self, name, value):
-        self.variables[name] = value
+        self.variables[name] = str(value)
+        if value is None:
+            self.variables.pop(name)
 
     # Discord-related functions
 
