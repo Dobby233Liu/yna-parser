@@ -205,6 +205,7 @@ async def wchoose(ctx: YnaFunctionContext, *options: tuple) -> str:
     if _len(options) % 2 != 0:
         raise YnaError("mismatched weightings")
 
+    options = list(copy(options))
     population = options[::2]
     weights = options[1::2]
     weights = map(lambda x: get_float(x, error="invalid weight"), weights)
