@@ -123,14 +123,14 @@ async def slice(ctx: YnaFunctionContext, args: ParamString, content: str) -> str
 
     args = args.split(",")
 
-    if _len(args) <= 0:
+    if _len(args) <= 0 or not args[0]:
         raise YnaError("no args")
     if _len(args) == 2:
         raise YnaError("bad content")
     if _len(args) > 3:
         raise YnaError("too many nums")
     if _len(args) == 1:
-        index = get_int(args, "non int index")
+        index = get_int(args[0], "non int index")
         try:
             return content[index]
         except IndexError as e:
@@ -208,7 +208,8 @@ async def wchoose(ctx: YnaFunctionContext, *options: tuple) -> str:
     options = list(copy(options))
     population = options[::2]
     weights = options[1::2]
-    weights = map(lambda x: get_float(x, error="invalid weight"), weights)
+    _func_name = "wchoose"
+    weights = map(lambda x: get_float(x, error="invalid weight", source_function=_func_name), weights)
 
     return choices(population, weights)
 
@@ -242,7 +243,7 @@ async def nameof(ctx: YnaFunctionContext, id: int, attrs: str = None, *args: Opt
     if not id:
         raise YnaError("no id")
 
-    id = get_int(id, "no id")
+    id = get_int(id, error="no id")
     user = ctx.base_ctx.get_member(id)
     if not user:
         raise YnaError("not found")
@@ -315,13 +316,13 @@ async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: An
         case YnaWhenOperator.NOT_EQUAL.value:
             condition = arg1 != arg2
         case YnaWhenOperator.LESSER_THAN.value:
-            condition = get_int(arg1, "args must be numbers") < get_int(arg2, "args must be numbers")
+            condition = get_int(arg1, error="args must be numbers") < get_int(arg2, error="args must be numbers")
         case YnaWhenOperator.LESSER_THAN_OR_EQUAL.value:
-            condition = get_int(arg1, "args must be numbers") <= get_int(arg2, "args must be numbers")
+            condition = get_int(arg1, error="args must be numbers") <= get_int(arg2, error="args must be numbers")
         case YnaWhenOperator.GREATER_THAN.value:
-            condition = get_int(arg1, "args must be numbers") > get_int(arg2, "args must be numbers")
+            condition = get_int(arg1, error="args must be numbers") > get_int(arg2, error="args must be numbers")
         case YnaWhenOperator.GREATER_THAN_OR_EQUAL.value:
-            condition = get_int(arg1, "args must be numbers") >= get_int(arg2, "args must be numbers")
+            condition = get_int(arg1, error="args must be numbers") >= get_int(arg2, error="args must be numbers")
         case YnaWhenOperator.IS_IN.value:
             try:
                 if "," in arg2:
@@ -391,7 +392,7 @@ async def loop(ctx: YnaFunctionContext, args: ParamString, content: FunctionType
     e = None
     s = None
     if _len(args) == 1:
-        e = get_int(args, "non int index")
+        e = get_int(args, error="non int index")
     else:
         b, e, s = args
         b, e, s = (
@@ -447,15 +448,16 @@ async def math(ctx: YnaFunctionContext, op: YnaMathOperator, *args: tuple[int | 
         raise YnaError("no args")
 
     args = list(copy(args))
+    _func_name = "math"
     def ensure_arg_amount(len):
         if _len(args) < len:
-            raise YnaError("invalid args")
+            raise YnaError("invalid args", source_function=_func_name)
     def ensure_args_float():
         for i in range(_len(args)):
-            args[i] = get_float(args[i], "non-float args")
+            args[i] = get_float(args[i], error="non-float args", source_function=_func_name)
     def ensure_args_int():
         for i in range(_len(args)):
-            args[i] = get_int(args[i], "non-int args")
+            args[i] = get_int(args[i], error="non-int args", source_function=_func_name)
 
     # aliases
     match op:
