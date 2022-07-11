@@ -407,7 +407,7 @@ async def loop(ctx: YnaFunctionContext, args: ParamString, content: FunctionType
         yield content(context)
 
 @yna_function
-async def rep(ctx: YnaFunctionContext, var: str, *args: tuple[str]) -> str:
+async def rep(ctx: YnaFunctionContext, var: str, *args: FunctionArguments) -> str:
     """
     Works like a find and replace function in a text editor.
     This command has 2 different syntaxes. The old and depreciated one and a new one.
