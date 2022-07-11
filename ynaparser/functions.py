@@ -11,6 +11,11 @@ from .utils_yna import get_attr, is_yna_error, get_int, get_float
 from enum import Enum
 import re
 
+__all__ = [
+    "YnaWhenOperator", "YnaWhenTypes", "YnaMathOperator",
+    'choose', 'len', 'loop', 'lower', 'math', 'member', 'nameof', 'num', 'parse', 'rep', 'set', 'slice', 'split', 'time', 'title', 'upper', 'user', 'void', 'wchoose', 'when'
+]
+
 FunctionArguments = tuple[str]
 ParamString = str
 
@@ -45,6 +50,24 @@ class YnaWhenTypes(Enum):
     # Checks if a is a yna exception.
     ERROR = "error"
     # /regex/ Checks if a matches the regex.
+
+class YnaMathOperator(Enum):
+    ADD = "add"
+    SUB = "sub"
+    MUL = "mul"
+    DIV = "div"
+    IDIV = "idiv"
+    MOD = "mod"
+    POW = "pow"
+    AND = "and"
+    OR = "or"
+    XOR = "xor"
+    NOT = "not"
+    MAX = "max"
+    MIN = "min"
+    FLOOR = "floor"
+    CEIL = "ceil"
+    ROUND = "round"
 
 ## Evaluation Objects ##############################
 
@@ -407,7 +430,7 @@ async def split(ctx: YnaFunctionContext, var: str, content: str, sep: str = ",")
     return len(result)
 
 @yna_function
-async def math(ctx: YnaFunctionContext, op: str, *args: tuple[int | float]) -> int | float:
+async def math(ctx: YnaFunctionContext, op: YnaMathOperator, *args: tuple[int | float]) -> int | float:
     """
     All arithmetic is done through a single function.
     Each method takes a specific number of arguments and has a specific resolution.
@@ -432,101 +455,101 @@ async def math(ctx: YnaFunctionContext, op: str, *args: tuple[int | float]) -> i
     # aliases
     match op:
         case "+":
-            op = "add"
+            op = YnaMathOperator.ADD.value
         case "-":
-            op = "sub"
+            op = YnaMathOperator.SUB.value
         case "*":
-            op = "mul"
+            op = YnaMathOperator.MUL.value
         case "/":
-            op = "div"
+            op = YnaMathOperator.DIV.value
         case "/f":
-            op = "div"
+            op = YnaMathOperator.DIV.value
         case "//":
-            op = "idiv"
+            op = YnaMathOperator.IDIV.value
         case "%":
-            op = "mod"
+            op = YnaMathOperator.MOD.value
         case "**":
-            op = "pow"
+            op = YnaMathOperator.POW.value
         case "&":
-            op = "and"
+            op = YnaMathOperator.AND.value
         case "|":
-            op = "or"
+            op = YnaMathOperator.OR.value
         case "^":
-            op = "xor"
+            op = YnaMathOperator.XOR.value
         case "~":
-            op = "not"
+            op = YnaMathOperator.NOT.value
 
     try:
         match op:
-            case "add":
+            case YnaMathOperator.ADD.value:
                 ensure_arg_amount(2)
                 ensure_args_float()
                 resolution = args[0]
                 for i in args[1:]:
                     resolution += i
-            case "sub":
+            case YnaMathOperator.SUB.value:
                 ensure_arg_amount(2)
                 ensure_args_float()
                 resolution = args[0] - args[1]
-            case "mul":
+            case YnaMathOperator.MUL.value:
                 ensure_arg_amount(2)
                 ensure_args_float()
                 resolution = args[0]
                 for i in args[1:]:
                     resolution *= i
-            case "div":
+            case YnaMathOperator.DIV.value:
                 ensure_arg_amount(2)
                 ensure_args_float()
                 resolution = args[0] / args[1]
-            case "idiv":
+            case YnaMathOperator.IDIV.value:
                 ensure_arg_amount(2)
                 ensure_args_int()
                 resolution = args[0] // args[1]
-            case "mod":
+            case YnaMathOperator.MOD.value:
                 ensure_arg_amount(2)
                 ensure_args_int()
                 resolution = args[0] % args[1]
-            case "pow":
+            case YnaMathOperator.POW.value:
                 ensure_arg_amount(2)
                 ensure_args_float()
                 resolution = args[0] ** args[1]
-            case "and":
+            case YnaMathOperator.AND.value:
                 ensure_arg_amount(2)
                 ensure_args_int()
                 resolution = args[0]
                 for i in args[1:]:
                     resolution &= i
-            case "or":
+            case YnaMathOperator.OR.value:
                 ensure_arg_amount(2)
                 ensure_args_int()
                 resolution = args[0]
                 for i in args[1:]:
                     resolution |= i
-            case "xor":
+            case YnaMathOperator.XOR.value:
                 ensure_arg_amount(2)
                 ensure_args_int()
                 resolution = args[0] ^ args[1]
-            case "not":
+            case YnaMathOperator.NOT.value:
                 ensure_arg_amount(1)
                 ensure_args_int()
-                resolution = args[0]
-            case "max":
+                resolution = ~args[0]
+            case YnaMathOperator.MAX.value:
                 ensure_arg_amount(2)
                 ensure_args_float()
                 resolution = max(*args)
-            case "min":
+            case YnaMathOperator.MIN.value:
                 ensure_arg_amount(2)
                 ensure_args_float()
                 resolution = min(*args)
-            case "floor":
+            case YnaMathOperator.FLOOR.value:
                 ensure_arg_amount(1)
                 ensure_args_float()
                 resolution = floor(args[0])
-            case "ceil":
+            case YnaMathOperator.CEIL.value:
                 ensure_arg_amount(1)
                 ensure_args_float()
                 resolution = ceil(args[0])
-            case "round":
+            case YnaMathOperator.ROUND.value:
                 ensure_arg_amount(1)
                 ensure_args_float()
                 resolution = round(args[0])
@@ -544,6 +567,7 @@ async def math(ctx: YnaFunctionContext, op: str, *args: tuple[int | float]) -> i
 
 # oneline is special case in parser
 
+@yna_function
 async def void(ctx: YnaFunctionContext, content: Any):
     """
     This evaluates its internal code and then swallows the output.

@@ -3,11 +3,12 @@ from typing import Any, Callable, Iterable, Optional, TypeVar
 
 T = TypeVar('T')
 
+__all__ = ["get", "find"]
+
 def get(iterable: Iterable[T], /, **attrs: Any) -> Optional[T]:
     # global -> local
     _all = all
 
-    # Special case the single element call
     if len(attrs) == 1:
         k, v = attrs.popitem()
         pred = attrgetter(k.replace('__', '.'))
