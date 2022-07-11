@@ -1,4 +1,4 @@
-from math import ceil, floor
+from math import ceil, floor, inf
 from multiprocessing.sharedctypes import Value
 from .classes import YnaBaseContext, YnaError, YnaFunctionContext, YnaSubContext
 from .decorators import yna_function, global_variable_getter, result_storable
@@ -457,80 +457,100 @@ async def math(ctx: YnaFunctionContext, op: str, *args: tuple[int | float]) -> i
         case "~":
             op = "not"
 
-    match op:
-        case "add":
-            ensure_arg_amount(2)
-            ensure_args_float()
-            resolution = args[0]
-            for i in args[1:]:
-                resolution += i
-        case "sub":
-            ensure_arg_amount(2)
-            ensure_args_float()
-            resolution = args[0] - args[1]
-        case "mul":
-            ensure_arg_amount(2)
-            ensure_args_float()
-            resolution = args[0]
-            for i in args[1:]:
-                resolution *= i
-        case "div":
-            ensure_arg_amount(2)
-            ensure_args_float()
-            resolution = args[0] / args[1]
-        case "idiv":
-            ensure_arg_amount(2)
-            ensure_args_int()
-            resolution = args[0] // args[1]
-        case "mod":
-            ensure_arg_amount(2)
-            ensure_args_int()
-            resolution = args[0] % args[1]
-        case "pow":
-            ensure_arg_amount(2)
-            ensure_args_float()
-            resolution = args[0] ** args[1]
-        case "and":
-            ensure_arg_amount(2)
-            ensure_args_int()
-            resolution = args[0]
-            for i in args[1:]:
-                resolution &= i
-        case "or":
-            ensure_arg_amount(2)
-            ensure_args_int()
-            resolution = args[0]
-            for i in args[1:]:
-                resolution |= i
-        case "xor":
-            ensure_arg_amount(2)
-            ensure_args_int()
-            resolution = args[0] ^ args[1]
-        case "not":
-            ensure_arg_amount(1)
-            ensure_args_int()
-            resolution = args[0]
-        case "max":
-            ensure_arg_amount(2)
-            ensure_args_float()
-            resolution = max(*args)
-        case "min":
-            ensure_arg_amount(2)
-            ensure_args_float()
-            resolution = min(*args)
-        case "floor":
-            ensure_arg_amount(1)
-            ensure_args_float()
-            resolution = floor(args[0])
-        case "ceil":
-            ensure_arg_amount(1)
-            ensure_args_float()
-            resolution = ceil(args[0])
-        case "round":
-            ensure_arg_amount(1)
-            ensure_args_float()
-            resolution = round(args[0])
-        case _:
-            raise YnaError("unknon op")
+    try:
+        match op:
+            case "add":
+                ensure_arg_amount(2)
+                ensure_args_float()
+                resolution = args[0]
+                for i in args[1:]:
+                    resolution += i
+            case "sub":
+                ensure_arg_amount(2)
+                ensure_args_float()
+                resolution = args[0] - args[1]
+            case "mul":
+                ensure_arg_amount(2)
+                ensure_args_float()
+                resolution = args[0]
+                for i in args[1:]:
+                    resolution *= i
+            case "div":
+                ensure_arg_amount(2)
+                ensure_args_float()
+                resolution = args[0] / args[1]
+            case "idiv":
+                ensure_arg_amount(2)
+                ensure_args_int()
+                resolution = args[0] // args[1]
+            case "mod":
+                ensure_arg_amount(2)
+                ensure_args_int()
+                resolution = args[0] % args[1]
+            case "pow":
+                ensure_arg_amount(2)
+                ensure_args_float()
+                resolution = args[0] ** args[1]
+            case "and":
+                ensure_arg_amount(2)
+                ensure_args_int()
+                resolution = args[0]
+                for i in args[1:]:
+                    resolution &= i
+            case "or":
+                ensure_arg_amount(2)
+                ensure_args_int()
+                resolution = args[0]
+                for i in args[1:]:
+                    resolution |= i
+            case "xor":
+                ensure_arg_amount(2)
+                ensure_args_int()
+                resolution = args[0] ^ args[1]
+            case "not":
+                ensure_arg_amount(1)
+                ensure_args_int()
+                resolution = args[0]
+            case "max":
+                ensure_arg_amount(2)
+                ensure_args_float()
+                resolution = max(*args)
+            case "min":
+                ensure_arg_amount(2)
+                ensure_args_float()
+                resolution = min(*args)
+            case "floor":
+                ensure_arg_amount(1)
+                ensure_args_float()
+                resolution = floor(args[0])
+            case "ceil":
+                ensure_arg_amount(1)
+                ensure_args_float()
+                resolution = ceil(args[0])
+            case "round":
+                ensure_arg_amount(1)
+                ensure_args_float()
+                resolution = round(args[0])
+            case _:
+                raise YnaError("unknon op")
+    except ZeroDivisionError as e:
+        raise YnaError("divide by 0") from e
+
+    if resolution >= inf:
+        raise YnaError("inf")
+    elif resolution <= -inf:
+        raise YnaError("-inf")
 
     return resolution
+
+# oneline is special case in parser
+
+async def void(ctx: YnaFunctionContext, content: Any):
+    """
+    This evaluates its internal code and then swallows the output.
+    The output will be printed to the debug log
+    """
+    # TODO: debug log
+    pass
+
+# TODO: the rest of functions
