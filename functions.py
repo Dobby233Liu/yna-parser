@@ -1,3 +1,4 @@
+from math import ceil, floor
 from multiprocessing.sharedctypes import Value
 from .classes import YnaBaseContext, YnaError, YnaFunctionContext, YnaSubContext
 from .decorators import yna_function, global_variable_getter, result_storable
@@ -406,4 +407,130 @@ async def split(ctx: YnaFunctionContext, var: str, content: str, sep: str = ",")
         ctx.base_ctx.set_variable(var + str(i), result[i])
     return len(result)
 
-# TODO: the rest of functions
+@yna_function
+async def math(ctx: YnaFunctionContext, op: str, *args: tuple[int | float]) -> int | float:
+    """
+    All arithmetic is done through a single function.
+    Each method takes a specific number of arguments and has a specific resolution.
+    The resolution is either int or float, the args are either exactly 1, exactly 2 or 2 and more.
+
+    You can use aliases, e.e. add and +, not and ~
+    """
+
+    if not args or len(args) < 1:
+        raise YnaError("no args")
+
+    def ensure_arg_amount(len):
+        if len(args) < len:
+            raise YnaError("invalid args")
+    def ensure_args_float():
+        for i in range(len(args)):
+            args[i] = get_float(args[i], "non-float args")
+    def ensure_args_int():
+        for i in range(len(args)):
+            args[i] = get_int(args[i], "non-int args")
+
+    # aliases
+    match op:
+        case "+":
+            op = "add"
+        case "-":
+            op = "sub"
+        case "*":
+            op = "mul"
+        case "/":
+            op = "div"
+        case "/f":
+            op = "div"
+        case "//":
+            op = "idiv"
+        case "%":
+            op = "mod"
+        case "**":
+            op = "pow"
+        case "&":
+            op = "and"
+        case "|":
+            op = "or"
+        case "^":
+            op = "xor"
+        case "~":
+            op = "not"
+
+    match op:
+        case "add":
+            ensure_arg_amount(2)
+            ensure_args_float()
+            resolution = args[0]
+            for i in args[1:]:
+                resolution += i
+        case "sub":
+            ensure_arg_amount(2)
+            ensure_args_float()
+            resolution = args[0] - args[1]
+        case "mul":
+            ensure_arg_amount(2)
+            ensure_args_float()
+            resolution = args[0]
+            for i in args[1:]:
+                resolution *= i
+        case "div":
+            ensure_arg_amount(2)
+            ensure_args_float()
+            resolution = args[0] / args[1]
+        case "idiv":
+            ensure_arg_amount(2)
+            ensure_args_int()
+            resolution = args[0] // args[1]
+        case "mod":
+            ensure_arg_amount(2)
+            ensure_args_int()
+            resolution = args[0] % args[1]
+        case "pow":
+            ensure_arg_amount(2)
+            ensure_args_float()
+            resolution = args[0] ** args[1]
+        case "and":
+            ensure_arg_amount(2)
+            ensure_args_int()
+            resolution = args[0]
+            for i in args[1:]:
+                resolution &= i
+        case "or":
+            ensure_arg_amount(2)
+            ensure_args_int()
+            resolution = args[0]
+            for i in args[1:]:
+                resolution |= i
+        case "xor":
+            ensure_arg_amount(2)
+            ensure_args_int()
+            resolution = args[0] ^ args[1]
+        case "not":
+            ensure_arg_amount(1)
+            ensure_args_int()
+            resolution = args[0]
+        case "max":
+            ensure_arg_amount(2)
+            ensure_args_float()
+            resolution = max(*args)
+        case "min":
+            ensure_arg_amount(2)
+            ensure_args_float()
+            resolution = min(*args)
+        case "floor":
+            ensure_arg_amount(1)
+            ensure_args_float()
+            resolution = floor(args[0])
+        case "ceil":
+            ensure_arg_amount(1)
+            ensure_args_float()
+            resolution = ceil(args[0])
+        case "round":
+            ensure_arg_amount(1)
+            ensure_args_float()
+            resolution = round(args[0])
+        case _:
+            raise YnaError("unknon op")
+
+    return resolution
