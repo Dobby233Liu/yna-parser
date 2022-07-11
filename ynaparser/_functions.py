@@ -1,3 +1,4 @@
+from copy import copy
 from math import ceil, floor, inf
 from types import FunctionType
 from .classes import YnaBaseContext, YnaError, YnaFunctionContext, YnaSubContext
@@ -99,12 +100,14 @@ async def title(ctx: YnaFunctionContext, content: str) -> str:
     """
     return content.title()
 
+_len: FunctionType = len
+
 @yna_function
 async def len(ctx: YnaFunctionContext, content: str) -> int:
     """
     Gets the length of the given evaluated content.
     """
-    return len(content)
+    return _len(content)
 
 @yna_function
 async def slice(ctx: YnaFunctionContext, args: ParamString, content: str) -> str:
@@ -114,19 +117,19 @@ async def slice(ctx: YnaFunctionContext, args: ParamString, content: str) -> str
     slice(ctx, index, content)
         - returns a specific 0-indexed character
 
-    slice(ctx, "b=None,e=None,s=1", content)
+    slice(ctx, "<b=None>,<e=None>,<s=1>", content)
         - returns a 0-indexed, top-exclusive substring
     """
 
     args = args.split(",")
 
-    if len(args) <= 0:
+    if _len(args) <= 0:
         raise YnaError("no args")
-    if len(args) == 2:
+    if _len(args) == 2:
         raise YnaError("bad content")
-    if len(args) > 3:
+    if _len(args) > 3:
         raise YnaError("too many nums")
-    if len(args) == 1:
+    if _len(args) == 1:
         index = get_int(args, "non int index")
         try:
             return content[index]
@@ -183,7 +186,7 @@ async def choose(ctx: YnaFunctionContext, *options: tuple) -> str:
     Chooses a random element from a given list.
     """
 
-    if not options or len(options) <= 0:
+    if not options or _len(options) <= 0:
         raise YnaError("no options")
 
     return choice(options)
@@ -197,9 +200,9 @@ async def wchoose(ctx: YnaFunctionContext, *options: tuple) -> str:
     wchoose(ctx, option: Any, weight: float, ...)
     """
 
-    if not options or len(options) <= 0:
+    if not options or _len(options) <= 0:
         raise YnaError("no options")
-    if len(options) % 2 != 0:
+    if _len(options) % 2 != 0:
         raise YnaError("mismatched weightings")
 
     population = options[::2]
@@ -216,7 +219,7 @@ async def user(ctx: YnaFunctionContext, attrs: str = None, *args: Optional[Funct
     Can choose any member, not just online/active/in the channel members.
     """
 
-    if args and len(args) > 0:
+    if args and _len(args) > 0:
         raise YnaError("too many args")
 
     rand_user = choice(ctx.base_ctx.get_members())
@@ -233,7 +236,7 @@ async def nameof(ctx: YnaFunctionContext, id: int, attrs: str = None, *args: Opt
     This can be paired with `member` to get an object.
     """
 
-    if args and len(args) > 0:
+    if args and _len(args) > 0:
         raise YnaError("too many args")
     if not id:
         raise YnaError("no id")
@@ -331,7 +334,7 @@ async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: An
             match arg2:
                 case YnaWhenTypes.WORD.value:
                     # https://stackoverflow.com/a/27280836
-                    condition = len(arg1.split()) == 1
+                    condition = _len(arg1.split()) == 1
                 case YnaWhenTypes.LETTER.value:
                     condition = arg1.isalpha()
                 case YnaWhenTypes.NUMBER.value:
@@ -380,13 +383,13 @@ async def loop(ctx: YnaFunctionContext, args: ParamString, content: FunctionType
 
     args = args.split(",")
 
-    if len(args) <= 0 or len(args) > 3:
+    if _len(args) <= 0 or _len(args) > 3:
         raise YnaError("invalid args")
 
     b = None
     e = None
     s = None
-    if len(args) == 1:
+    if _len(args) == 1:
         e = get_int(args, "non int index")
     else:
         b, e, s = args
@@ -425,9 +428,9 @@ async def split(ctx: YnaFunctionContext, var: str, content: str, sep: str = ",")
     """
 
     result = content.split(sep)
-    for i in range(len(result)):
+    for i in range(_len(result)):
         ctx.base_ctx.set_variable(var + str(i), result[i])
-    return len(result)
+    return _len(result)
 
 @yna_function
 async def math(ctx: YnaFunctionContext, op: YnaMathOperator, *args: tuple[int | float]) -> int | float:
@@ -439,17 +442,18 @@ async def math(ctx: YnaFunctionContext, op: YnaMathOperator, *args: tuple[int | 
     You can use aliases, e.e. add and +, not and ~
     """
 
-    if not args or len(args) < 1:
+    if not args or _len(args) < 1:
         raise YnaError("no args")
 
+    args = list(copy(args))
     def ensure_arg_amount(len):
-        if len(args) < len:
+        if _len(args) < len:
             raise YnaError("invalid args")
     def ensure_args_float():
-        for i in range(len(args)):
+        for i in range(_len(args)):
             args[i] = get_float(args[i], "non-float args")
     def ensure_args_int():
-        for i in range(len(args)):
+        for i in range(_len(args)):
             args[i] = get_int(args[i], "non-int args")
 
     # aliases
