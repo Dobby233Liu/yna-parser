@@ -7,6 +7,8 @@ def yna_function(func: FunctionType) -> FunctionType:
     """
     When a function has this decorator, it is treated as a function
     in the YNA language.
+
+    TODO: redudant?
     """
 
     return func
@@ -17,6 +19,7 @@ def global_variable_getter(func: FunctionType) -> FunctionType:
     when accessed as a global variable.
     """
 
+    func.global_variable_getter = True
     return func
 
 def result_storable(func: Optional[FunctionType] = None, *, type_clash=False) -> FunctionType:
