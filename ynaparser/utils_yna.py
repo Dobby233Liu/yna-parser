@@ -1,5 +1,6 @@
 from typing import Any
 from .classes import YnaError
+import inspect
 
 def get_attr(obj: Any, attrs: str, func_context: bool = False) -> Any:
     """
@@ -18,3 +19,21 @@ def get_attr(obj: Any, attrs: str, func_context: bool = False) -> Any:
 
 def is_yna_error(error: YnaError | Any):
     return isinstance(error, YnaError)
+
+def get_int(value: Any, error: str = "non int parameter") -> int:
+    """
+    Gets a integer from the function parameters.
+    """
+    try:
+        return int(value)
+    except ValueError as e:
+        raise YnaError(error, source_function=inspect.stack()[2][3]) from e
+
+def get_float(value: Any, error: str = "non float parameter") -> int:
+    """
+    Gets a float from the function parameters.
+    """
+    try:
+        return float(value)
+    except ValueError as e:
+        raise YnaError(error, source_function=inspect.stack()[2][3]) from e

@@ -3,12 +3,11 @@ from types import FunctionType
 from .classes import YnaBaseContext, YnaError, YnaFunctionContext, YnaSubContext
 from .decorators import yna_function, global_variable_getter, result_storable
 from typing import Any, Optional
-from .types_transformer import get_int, get_float
 from datetime import datetime, timedelta
 from urllib.parse import quote as urlencode
 from random import choice, choices, randrange
 from .fake_discord import Member
-from .utils_yna import get_attr, is_yna_error
+from .utils_yna import get_attr, is_yna_error, get_int, get_float
 from enum import Enum
 import re
 
