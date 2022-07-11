@@ -1,23 +1,7 @@
 from operator import attrgetter
 from typing import Any, Callable, Iterable, Optional, TypeVar
-from classes import YnaError
 
 T = TypeVar('T')
-
-def get_attr(obj: Any, attrs: str, func_context: bool = False) -> Any:
-    """
-    Gets attribute of an object by an attribute path.
-    """
-    attr = obj
-    for i in attrs.split("."):
-        try:
-            attr = getattr(attr, i)
-        except AttributeError as e:
-            if func_context:
-                raise YnaError("has no attrs") from e
-            else:
-                raise e
-    return attr
 
 def get(iterable: Iterable[T], /, **attrs: Any) -> Optional[T]:
     # global -> local
@@ -37,6 +21,3 @@ def get(iterable: Iterable[T], /, **attrs: Any) -> Optional[T]:
 
 def find(predicate: Callable[[T], Any], iterable: Iterable[T], /) -> Optional[T]:
     return next((element for element in iterable if predicate(element)), None)
-
-def is_yna_error(error: YnaError | Any):
-    return isinstance(error, YnaError)

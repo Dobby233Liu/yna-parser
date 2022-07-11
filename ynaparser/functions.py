@@ -1,4 +1,5 @@
 from math import ceil, floor, inf
+from types import FunctionType
 from .classes import YnaBaseContext, YnaError, YnaFunctionContext, YnaSubContext
 from .decorators import yna_function, global_variable_getter, result_storable
 from typing import Any, Optional
@@ -6,8 +7,8 @@ from .types_transformer import get_int, get_float
 from datetime import datetime, timedelta
 from urllib.parse import quote as urlencode
 from random import choice, choices, randrange
-from fake_discord import Member
-from .utils import get_attr, is_yna_error
+from .fake_discord import Member
+from .utils_sub import get_attr, is_yna_error
 from enum import Enum
 import re
 
@@ -274,7 +275,7 @@ def _empty_cb(ctx: YnaBaseContext) -> None:
 
 # special case: interpreter evaluates on_true and on_false to functions
 @yna_function
-async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: Any | YnaWhenTypes, on_true: function, on_false: Optional[function] = None) -> Optional[Any]:
+async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: Any | YnaWhenTypes, on_true: FunctionType, on_false: Optional[FunctionType] = None) -> Optional[Any]:
     """
     Conditionals, similar to if statements.
     """
@@ -345,7 +346,7 @@ async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: An
 #   - interpreter evaluates content to a function
 #   - handles this generator
 @yna_function
-async def loop(ctx: YnaFunctionContext, args: ParamString, content: function) -> Optional[any]:
+async def loop(ctx: YnaFunctionContext, args: ParamString, content: FunctionType) -> Optional[any]:
     """
     Flow control, similar to "for" loops.
     Whilst inside the loop, your current loopcount will be stored in the {iter} variable. Note: This will be deleted when a loop is exited.

@@ -1,9 +1,9 @@
+from types import FunctionType
 from typing import Optional
-from classes import YnaError, YnaFunctionContext
+from .classes import YnaError, YnaFunctionContext
 from functools import update_wrapper
-from .functions import FunctionArguments
 
-def yna_function(func: function) -> function:
+def yna_function(func: FunctionType) -> FunctionType:
     """
     When a function has this decorator, it is treated as a function
     in the YNA language.
@@ -11,7 +11,7 @@ def yna_function(func: function) -> function:
 
     return func
 
-def global_variable_getter(func: function) -> function:
+def global_variable_getter(func: FunctionType) -> FunctionType:
     """
     When a function has this decorator, it will called
     when accessed as a global variable.
@@ -19,7 +19,7 @@ def global_variable_getter(func: function) -> function:
 
     return func
 
-def result_storable(func: Optional[function] = None, *, type_clash=False) -> function:
+def result_storable(func: Optional[FunctionType] = None, *, type_clash=False) -> FunctionType:
     """
     When a function has this decorator, then when the function is invoked like:
 
@@ -31,7 +31,7 @@ def result_storable(func: Optional[function] = None, *, type_clash=False) -> fun
     as a global variable.
     """
 
-    def inner(ctx: YnaFunctionContext, *args: FunctionArguments, **kwargs: FunctionArguments) -> str:
+    def inner(ctx: YnaFunctionContext, *args: tuple[str], **kwargs: tuple[str]) -> str:
         # I hate squas
         if type_clash and not ctx.called_as_variable:
             raise YnaError("type clash")
