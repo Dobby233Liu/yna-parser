@@ -1,4 +1,5 @@
 from typing import List, Dict, Optional
+from . import utils
 
 class User(object):
     """
@@ -58,6 +59,21 @@ class Guild(object):
 
     def get_member(self, id: int) -> Optional[Member]:
         return self._members.get(id)
+
+    def get_member_named(self, name: str) -> Optional[Member]:
+        result = None
+        members = self.members
+        if len(name) > 5 and name[-5] == '#':
+            potential_discriminator = name[-4:]
+
+            result = utils.get(members, name=name[:-5], discriminator=potential_discriminator)
+            if result is not None:
+                return result
+
+        def pred(m: Member) -> bool:
+            return m.nick == name or m.name == name
+
+        return utils.find(pred, members)
 
 class Context(object):
     """

@@ -9,3 +9,5 @@ Nothing has started except of implementations for YNA functions.
 ## License
 
 [MIT License](LICENSE)
+
+This codebase also contains copies of discord.py code; its license can be found [here](LICENSE.discordpy).

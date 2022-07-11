@@ -1,3 +1,4 @@
+import inspect
 from typing import Any
 from .classes import YnaError
 
@@ -8,7 +9,7 @@ def get_int(value: Any, error: str = "non int parameter") -> int:
     try:
         return int(value)
     except ValueError as e:
-        raise YnaError(error) from e
+        raise YnaError(error, source_function=inspect.stack()[2][3]) from e
 
 def get_float(value: Any, error: str = "non float parameter") -> int:
     """
@@ -17,4 +18,4 @@ def get_float(value: Any, error: str = "non float parameter") -> int:
     try:
         return float(value)
     except ValueError as e:
-        raise YnaError(error) from e
+        raise YnaError(error, source_function=inspect.stack()[2][3]) from e

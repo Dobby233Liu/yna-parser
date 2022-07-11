@@ -1,4 +1,5 @@
-from .classes import YnaError, YnaFunctionContext
+from multiprocessing.sharedctypes import Value
+from .classes import YnaContext, YnaError, YnaFunctionContext
 from .decorators import yna_function, global_variable_getter, result_storable
 from typing import Any, Optional
 from .types_transformer import get_int, get_float
@@ -6,9 +7,43 @@ from datetime import datetime, timedelta
 from urllib.parse import quote as urlencode
 from random import choice, choices, randrange
 from fake_discord import Member
-from .utils import get_attr
+from .utils import get_attr, is_yna_error
+from enum import Enum
+import re
 
 FunctionArguments = tuple[str]
+
+class YnaWhenOperator(Enum):
+    # Checks that a and b are the same.
+    EQUAL = "eq"
+    # Checks that a and b are different.
+    NOT_EQUAL = "ne"
+    # Checks that a is strictly less than b.
+    LESSER_THAN = "lt"
+    # Checks that a is less than or equal to b.
+    LESSER_THAN_OR_EQUAL = "le"
+    # Checks that a is strictly greater than b.
+    GREATER_THAN = "gt"
+    # Checks that a is greater than or equal to b.
+    GREATER_THAN_OR_EQUAL = "ge"
+    # Checks that a is a substring of b.
+    # Checks that a matches an element in the comma seperated list in b.
+    IS_IN = "in"
+    # Checks that a is of the type defined in b
+    IS = "is"
+
+class YnaWhenTypes(Enum):
+    # Checks if a is a single word.
+    WORD = "word"
+    # Checks if a is a single letter.
+    LETTER = "letter"
+    # Checks if a is castable to int.
+    NUMBER = "number"
+    # Checks if a is castable to float.
+    DECIMAL = "decimal"
+    # Checks if a is a yna exception.
+    ERROR = "error"
+    # /regex/ Checks if a matches the regex.
 
 ## Evaluation Objects ##############################
 
@@ -203,8 +238,80 @@ async def set(ctx: YnaFunctionContext, name: str, value: Optional[Any] = None) -
     All objects saved this way are strings.
     """
 
-    ctx.base_ctx.set_variable(name, value)
+    ctx.base_ctx.set_variable(name, value and str(value) or None)
+
+@yna_function
+async def member(ctx: YnaFunctionContext, key: str, name: str) -> None:
+    """
+    Variables can be stored using the set command and then recalled like any other Format Object.
+    All objects saved this way are strings.
+    """
+
+    member = ctx.base_ctx.get_member_named(name)
+    if not member:
+        raise YnaError("not found")
+
+    ctx.base_ctx.set_variable(key, member)
 
 # func would be a special case in the parser
+
+def _empty_cb(ctx: YnaContext):
+    pass
+
+@yna_function
+async def when(ctx: YnaFunctionContext, arg1: Any, op: YnaWhenOperator, arg2: Any | YnaWhenTypes, on_true: function, on_false: Optional[function]) -> Any:
+    on_false = on_false and on_false or _empty_cb
+
+    condition = False
+    match op:
+        case YnaWhenOperator.EQUAL.value:
+            condition = arg1 == arg2
+        case YnaWhenOperator.NOT_EQUAL.value:
+            condition = arg1 != arg2
+        case YnaWhenOperator.LESSER_THAN.value:
+            condition = get_int(arg1, "args must be numbers") < get_int(arg2, "args must be numbers")
+        case YnaWhenOperator.LESSER_THAN_OR_EQUAL.value:
+            condition = get_int(arg1, "args must be numbers") <= get_int(arg2, "args must be numbers")
+        case YnaWhenOperator.GREATER_THAN.value:
+            condition = get_int(arg1, "args must be numbers") > get_int(arg2, "args must be numbers")
+        case YnaWhenOperator.GREATER_THAN_OR_EQUAL.value:
+            condition = get_int(arg1, "args must be numbers") >= get_int(arg2, "args must be numbers")
+        case YnaWhenOperator.IS_IN.value:
+            if "," in arg2:
+                arg2 = arg2.split(",")
+            condition = arg1 in arg2
+        case YnaWhenOperator.IS.value:
+            match arg2:
+                case YnaWhenTypes.WORD.value:
+                    # https://stackoverflow.com/a/27280836
+                    condition = len(arg1.split()) == 1
+                case YnaWhenTypes.LETTER.value:
+                    condition = arg1.isalpha()
+                case YnaWhenTypes.NUMBER.value:
+                    condition = True
+                    try:
+                        int(arg1)
+                    except ValueError:
+                        condition = False
+                case YnaWhenTypes.DECIMAL.value:
+                    condition = True
+                    try:
+                        float(arg1)
+                    except ValueError:
+                        condition = False
+                case YnaWhenTypes.ERROR.value:
+                    condition = is_yna_error(arg1)
+                case _:
+                    if arg2.startswith("/") and arg2.endswith("/"):
+                        condition = bool(re.match(arg1[1:-1], arg1))
+                    else:
+                        raise YnaError("invalid type name")
+        case _:
+            raise YnaError("invalid op")
+
+    if condition:
+        return on_true(ctx.base_ctx)
+    else:
+        return on_false(ctx.base_ctx)
 
 # TODO: the rest of functions

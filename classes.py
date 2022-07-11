@@ -1,3 +1,4 @@
+import inspect
 from typing import Optional, Any
 from .fake_discord import Context as DiscordContext
 from .fake_discord import Guild, Member
@@ -29,9 +30,12 @@ class YnaContext(YnaBaseContext):
     variables: list[str] = []
 
     def set_variable(self, name, value):
-        self.variables[name] = str(value)
+        # todo: check name vaildity
+
         if value is None:
             self.variables.pop(name)
+            return
+        self.variables[name] = value
 
     # Discord-related functions
 
@@ -45,9 +49,14 @@ class YnaContext(YnaBaseContext):
     def get_member(self, id: int) -> Optional[Member]:
         """
         Returns all members of the guild the bot is in.
-        Dummy function, returns a empty list.
         """
         return self.discord_ctx.guild.get_member(id)
+
+    def get_member_named(self, name: str) -> Optional[Member]:
+        """
+        Returns the first member found that matches the name provided.
+        """
+        return self.discord_ctx.guild.get_member_named(id)
 
 class YnaSubContext(YnaContext):
 
@@ -96,4 +105,12 @@ class YnaError(Exception):
     An error that ocurred when running a YNA function.
     This is not a fatal exception.
     """
-    pass
+
+    source_function: str = ""
+
+    def __init__(self, *args: tuple, source_function: str | None = None) -> None:
+        super().__init__(*args)
+        self.source_function = source_function and source_function or inspect.stack()[2][3]
+
+    def __str__(self) -> str:
+        return self.source_function and "<%s:%s>" % (self.source_function, super().__str__()) or "<%s>" % (super().__str__())
