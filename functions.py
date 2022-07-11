@@ -1,8 +1,7 @@
 from math import ceil, floor, inf
-from multiprocessing.sharedctypes import Value
 from .classes import YnaBaseContext, YnaError, YnaFunctionContext, YnaSubContext
 from .decorators import yna_function, global_variable_getter, result_storable
-from typing import Any, Optional, Type
+from typing import Any, Optional
 from .types_transformer import get_int, get_float
 from datetime import datetime, timedelta
 from urllib.parse import quote as urlencode
